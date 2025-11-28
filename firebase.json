@@ -1,1 +1,54 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"checkandgo-e1045","configurations":{"android":"1:162127967277:android:3dc448dd76b0b93bc0f4a4","ios":"1:162127967277:ios:e1cf6a59ff2feed4c0f4a4","web":"1:162127967277:web:033b4f0b7474cfccc0f4a4"}}},"android":{"default":{"projectId":"checkandgo-e1045","appId":"1:162127967277:android:3dc448dd76b0b93bc0f4a4","fileOutput":"android/app/google-services.json"}}}}}
+{
+  "functions": [
+    {
+      "codebase": "default",
+      "source": "functions"
+    },
+    {
+      "source": "api",
+      "codebase": "api",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "emulators": {
+    "singleProjectMode": true,
+    "functions": {
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true
+    }
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "checkandgo-e1045",
+          "configurations": {
+            "android": "1:162127967277:android:3dc448dd76b0b93bc0f4a4",
+            "ios": "1:162127967277:ios:e1cf6a59ff2feed4c0f4a4",
+            "web": "1:162127967277:web:033b4f0b7474cfccc0f4a4"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "checkandgo-e1045",
+          "appId": "1:162127967277:android:3dc448dd76b0b93bc0f4a4",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  }
+}

@@ -222,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 프로필 섹션
+            //프로필 섹션
             Container(
               padding: const EdgeInsets.all(24),
               color: Colors.white,
@@ -269,7 +269,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 설정 섹션들
+            //설정 섹션들
             ...settingSections.asMap().entries.map((entry) {
               final section = entry.value;
               final isLast = entry.key == settingSections.length - 1;

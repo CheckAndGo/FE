@@ -8,15 +8,21 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/auth/welcome_screen.dart';
 import '../screens/not_found_screen.dart';
+import '../models/trip.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/auth/welcome',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+
     GoRoute(
       path: '/calendar',
-      builder: (context, state) => const CalendarScreen(),
+      builder: (context, state) {
+        final Trip? newTrip = state.extra as Trip?;
+        return CalendarScreen(newTrip: newTrip);
+      },
     ),
+
     GoRoute(
       path: '/checklist',
       builder: (context, state) => const ChecklistScreen(),

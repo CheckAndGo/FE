@@ -30,7 +30,7 @@ android {
         applicationId = "com.checkandgo.checkandgo_app"
 
         // 🔥 Firebase 최신 라이브러리 최소 요구사항
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
 
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

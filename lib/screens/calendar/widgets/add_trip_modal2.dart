@@ -1,60 +1,112 @@
 import 'package:flutter/material.dart';
+
+import '../../../models/trip_draft.dart';
+
 import 'add_trip_modal3.dart';
 
 class AddTripModal2 extends StatefulWidget {
-  const AddTripModal2({super.key});
+  final TripDraft draft;
+
+  const AddTripModal2({
+    super.key,
+    required this.draft,
+  });
 
   @override
   State<AddTripModal2> createState() => _AddTripModal2State();
 }
 
 class _AddTripModal2State extends State<AddTripModal2> {
-  int people = 1;
-  final _budgetController = TextEditingController();
-  final _tripNameController = TextEditingController();
+  late int people;
+  late TextEditingController _budgetController;
+  late TextEditingController _tripNameController;
+  String? selectedPurpose;
 
-  Widget _purposeButton(String text) { //여행 목적 부분 박스 크기 고정을 위한 함수
+  @override
+  void initState() {
+    super.initState();
+    people = widget.draft.people ?? 1;
+    _budgetController =
+        TextEditingController(text: widget.draft.budget ?? '');
+    _tripNameController =
+        TextEditingController(text: widget.draft.tripName ?? '');
+    selectedPurpose = widget.draft.purpose;
+  }
+
+  @override
+  void dispose() {
+    _budgetController.dispose();
+    _tripNameController.dispose();
+    super.dispose();
+  }
+
+  Widget _purposeButton(String text) {
+    final selected = selectedPurpose == text;
     return Container(
       width: 168,
       height: 44,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
+        color: selected ? const Color(0xFF2E6BFF) : const Color(0xFFF3F4F6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
-          color: Color(0xFF555555),
           fontWeight: FontWeight.w500,
+          color: selected ? Colors.white : const Color(0xFF555555),
         ),
       ),
     );
   }
 
+  void _goNext() {
+    if (selectedPurpose == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('여행 목적을 선택해주세요.')),
+      );
+      return;
+    }
+
+    final updatedDraft = widget.draft.copyWith(
+      people: people,
+      budget: _budgetController.text.trim().isEmpty
+          ? null
+          : _budgetController.text.trim(),
+      tripName: _tripNameController.text.trim().isEmpty
+          ? null
+          : _tripNameController.text.trim(),
+      purpose: selectedPurpose,
+    );
+
+    Navigator.pop(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AddTripModal3(draft: updatedDraft),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      //흰 모달창
       width: 390,
       height: 688,
       decoration: const BoxDecoration(
-
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
-
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더
+          //헤더
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 17, 0),
-
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,//헤더 제목이랑 'x' 사이에 공백 두고 배치
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   '새 여행 계획',
@@ -64,7 +116,6 @@ class _AddTripModal2State extends State<AddTripModal2> {
                     color: Color(0xFF000000),
                   ),
                 ),
-
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.black),
                   onPressed: () => Navigator.pop(context),
@@ -72,24 +123,26 @@ class _AddTripModal2State extends State<AddTripModal2> {
               ],
             ),
           ),
-          const SizedBox(height: 8), //원래는 20인데 헤더를 묶어버리면서 박스가 형성됌->8로 설정
+          const SizedBox(height: 8),
 
-          // 진행 바
+          //진행 바
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: LinearProgressIndicator(
               value: 0.5,
               backgroundColor: const Color(0xffEFEFEF),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2E80EC)),
+              valueColor:
+              const AlwaysStoppedAnimation<Color>(Color(0xFF2E80EC)),
               minHeight: 8,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
           const SizedBox(height: 16),
+
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),//왼쪽 간격 조절
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -103,7 +156,7 @@ class _AddTripModal2State extends State<AddTripModal2> {
                     ),
                     const SizedBox(height: 12),
 
-                    // 여행 인원
+                    // 인원
                     const Text(
                       '여행 인원',
                       style: TextStyle(
@@ -138,7 +191,7 @@ class _AddTripModal2State extends State<AddTripModal2> {
 
                     const SizedBox(height: 12),
 
-                    // 예산
+                    //예산
                     const Text(
                       '예산 (선택사항)',
                       style: TextStyle(
@@ -148,7 +201,6 @@ class _AddTripModal2State extends State<AddTripModal2> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     _inputField(
                       controller: _budgetController,
                       hint: '예: 100만원, \$1000',
@@ -156,7 +208,7 @@ class _AddTripModal2State extends State<AddTripModal2> {
 
                     const SizedBox(height: 12),
 
-                    // 여행 이름
+                    //여행 이름
                     const Text(
                       '여행 이름',
                       style: TextStyle(
@@ -166,7 +218,6 @@ class _AddTripModal2State extends State<AddTripModal2> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     _inputField(
                       controller: _tripNameController,
                       hint: '예: 유럽 여행, 일본 1달 살기',
@@ -174,7 +225,7 @@ class _AddTripModal2State extends State<AddTripModal2> {
 
                     const SizedBox(height: 12),
 
-                    // 여행 목적
+                    //목적
                     const Text(
                       '여행 목적',
                       style: TextStyle(
@@ -188,56 +239,73 @@ class _AddTripModal2State extends State<AddTripModal2> {
                     Column(
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
-                            _purposeButton('관광'),
-                            _purposeButton('비즈니스'),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedPurpose = '관광'),
+                              child: _purposeButton('관광'),
+                            ),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedPurpose = '비즈니스'),
+                              child: _purposeButton('비즈니스'),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
-                            _purposeButton('휴양'),
-                            _purposeButton('문화체험'),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedPurpose = '휴양'),
+                              child: _purposeButton('휴양'),
+                            ),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedPurpose = '문화체험'),
+                              child: _purposeButton('문화체험'),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
-                            _purposeButton('친구 방문'),
-                            _purposeButton('기타'),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedPurpose = '친구 방문'),
+                              child: _purposeButton('친구 방문'),
+                            ),
+                            GestureDetector(
+                              onTap: () =>
+                                  setState(() => selectedPurpose = '기타'),
+                              child: _purposeButton('기타'),
+                            ),
                           ],
                         ),
                       ],
                     ),
 
-
-                    const SizedBox(height: 16), //밑에서 16까지 스크롤 가능
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 확인 버튼
+          //확인 버튼
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: SizedBox(
               width: 350,
               height: 44,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // modal2 닫기
-
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (ctx) => const AddTripModal3(), //modal3로 이동
-                  );
-                },
+                onPressed: _goNext,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E6BFF),
                   foregroundColor: Colors.white,
@@ -255,7 +323,6 @@ class _AddTripModal2State extends State<AddTripModal2> {
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -278,8 +345,6 @@ class _AddTripModal2State extends State<AddTripModal2> {
     );
   }
 
-
-
   //텍스트 필드
   Widget _inputField({
     required TextEditingController controller,
@@ -292,36 +357,21 @@ class _AddTripModal2State extends State<AddTripModal2> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.grey),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFBFBFBF)),
+            borderSide:
+            const BorderSide(color: Color(0xFFBFBFBF)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFF2E6BFF)),
+            borderSide:
+            const BorderSide(color: Color(0xFF2E6BFF)),
           ),
-        ),
-      ),
-    );
-  }
-
-  //목적 태그 버튼
-  Widget _tag(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color(0xFF333333),
         ),
       ),
     );

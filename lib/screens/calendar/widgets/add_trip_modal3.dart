@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
-import 'add_trip_modal4.dart';
+
+import '../../../models/trip_draft.dart';
+
 import 'add_trip_modal2.dart';
+import 'add_trip_modal4.dart';
 
 class AddTripModal3 extends StatefulWidget {
-  const AddTripModal3({super.key});
+  final TripDraft draft;
+
+  const AddTripModal3({
+    super.key,
+    required this.draft,
+  });
 
   @override
   State<AddTripModal3> createState() => _AddTripModal3State();
@@ -13,7 +21,13 @@ class _AddTripModal3State extends State<AddTripModal3> {
   String? selectedStay;
   String? selectedTransport;
 
-  //공통 버튼 설정
+  @override
+  void initState() {
+    super.initState();
+    selectedStay = widget.draft.stayType;
+    selectedTransport = widget.draft.transport;
+  }
+
   Widget _optionButton(String text, bool selected) {
     return Container(
       width: 168,
@@ -31,6 +45,38 @@ class _AddTripModal3State extends State<AddTripModal3> {
           color: selected ? Colors.white : const Color(0xFF555555),
         ),
       ),
+    );
+  }
+
+  void _goPrev() {
+    Navigator.pop(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AddTripModal2(draft: widget.draft),
+    );
+  }
+
+  void _goNext() {
+    if (selectedStay == null || selectedTransport == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('숙박 유형과 교통수단을 모두 선택해주세요.')),
+      );
+      return;
+    }
+
+    final updatedDraft = widget.draft.copyWith(
+      stayType: selectedStay,
+      transport: selectedTransport,
+    );
+
+    Navigator.pop(context);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AddTripModal4(draft: updatedDraft),
     );
   }
 
@@ -68,9 +114,9 @@ class _AddTripModal3State extends State<AddTripModal3> {
             ),
           ),
 
-          const SizedBox(height: 28), //헤더 간격 문제로 32->28
+          const SizedBox(height: 28),
 
-          // 진행바
+          //진행바
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: LinearProgressIndicator(
@@ -92,7 +138,6 @@ class _AddTripModal3State extends State<AddTripModal3> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 숙박 및 교통
                     const Text(
                       "숙박 및 교통",
                       style: TextStyle(
@@ -101,10 +146,9 @@ class _AddTripModal3State extends State<AddTripModal3> {
                         color: Colors.black,
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
-                    // 숙박 유형
+                    //숙박 유형
                     const Text(
                       "숙박 유형",
                       style: TextStyle(
@@ -113,21 +157,23 @@ class _AddTripModal3State extends State<AddTripModal3> {
                         color: Color(0xFF858585),
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
                     Column(
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () => setState(() => selectedStay = "호텔"),
+                              onTap: () =>
+                                  setState(() => selectedStay = "호텔"),
                               child: _optionButton(
                                   "호텔", selectedStay == "호텔"),
                             ),
                             GestureDetector(
-                              onTap: () => setState(() => selectedStay = "리조트"),
+                              onTap: () =>
+                                  setState(() => selectedStay = "리조트"),
                               child: _optionButton(
                                   "리조트", selectedStay == "리조트"),
                             ),
@@ -135,11 +181,12 @@ class _AddTripModal3State extends State<AddTripModal3> {
                         ),
                         const SizedBox(height: 12),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () =>
-                                  setState(() => selectedStay = "게스트하우스"),
+                              onTap: () => setState(
+                                      () => selectedStay = "게스트하우스"),
                               child: _optionButton("게스트하우스",
                                   selectedStay == "게스트하우스"),
                             ),
@@ -153,17 +200,20 @@ class _AddTripModal3State extends State<AddTripModal3> {
                         ),
                         const SizedBox(height: 12),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () => setState(() => selectedStay = "호스텔"),
+                              onTap: () =>
+                                  setState(() => selectedStay = "호스텔"),
                               child: _optionButton(
                                   "호스텔", selectedStay == "호스텔"),
                             ),
                             GestureDetector(
-                              onTap: () => setState(() => selectedStay = "기타"),
-                              child:
-                              _optionButton("기타", selectedStay == "기타"),
+                              onTap: () =>
+                                  setState(() => selectedStay = "기타"),
+                              child: _optionButton(
+                                  "기타", selectedStay == "기타"),
                             ),
                           ],
                         ),
@@ -172,7 +222,7 @@ class _AddTripModal3State extends State<AddTripModal3> {
 
                     const SizedBox(height: 20),
 
-                    // 주요 교통수단
+                    //교통수단
                     const Text(
                       "주요 교통수단",
                       style: TextStyle(
@@ -181,7 +231,6 @@ class _AddTripModal3State extends State<AddTripModal3> {
                         color: Color(0xFF858585),
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
                     Column(
@@ -191,8 +240,8 @@ class _AddTripModal3State extends State<AddTripModal3> {
                           MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () =>
-                                  setState(() => selectedTransport = "항공기"),
+                              onTap: () => setState(
+                                      () => selectedTransport = "항공기"),
                               child: _optionButton("항공기",
                                   selectedTransport == "항공기"),
                             ),
@@ -252,30 +301,19 @@ class _AddTripModal3State extends State<AddTripModal3> {
             ),
           ),
 
-          //이전, 다음 버튼
+          //이전 / 다음 버튼
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
             child: Row(
               children: [
-                // 이전
                 Expanded(
                   child: SizedBox(
                     height: 44,
                     child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (ctx) => const AddTripModal2(), // 🔥 modal3로 이동
-                        );
-
-                      },
+                      onPressed: _goPrev,
                       style: OutlinedButton.styleFrom(
-                        side:
-                        const BorderSide(color: Color(0xFF2E6BFF), width: 1),
+                        side: const BorderSide(
+                            color: Color(0xFF2E6BFF), width: 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -291,26 +329,12 @@ class _AddTripModal3State extends State<AddTripModal3> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
-                // 다음
                 Expanded(
                   child: SizedBox(
                     height: 44,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (ctx) => const AddTripModal4(),
-                        );
-
-
-                      },
+                      onPressed: _goNext,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2E6BFF),
                         shape: RoundedRectangleBorder(
@@ -330,7 +354,7 @@ class _AddTripModal3State extends State<AddTripModal3> {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

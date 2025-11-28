@@ -3,27 +3,25 @@ import 'package:http/http.dart' as http;
 import '../models/trip_response.dart';
 
 class TripService {
-  // Firebase Cloud Functions 베이스 URL
-  // region: asia-northeast3 (서울), projectId: checkandgo-e1045
-  static const String baseUrl =
-      'https://asia-northeast3-checkandgo-e1045.cloudfunctions.net';
+  /// -----------------------------
+  /// 🔥 Firebase Functions Emulator
+  /// -----------------------------
+  static const String emulatorUrl =
+      'http://10.0.2.2:5001/checkandgo-e1045/asia-northeast3/api';
 
-  // Firebase Auth ID Token
+  // Auth Token (필요 시 사용)
   static String? _authToken;
-
   static void setAuthToken(String token) {
     _authToken = token;
   }
 
   /// 여행 목록 조회
-  /// [limit] 가져올 항목 수 (기본값: 10)
-  /// [status] 여행 상태 (기본값: 'active')
   static Future<TripResponse> getTrips({
     int limit = 10,
     String status = 'active',
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/trips').replace(queryParameters: {
+      final uri = Uri.parse('$emulatorUrl/trips').replace(queryParameters: {
         'limit': limit.toString(),
         'status': status,
       });
@@ -47,10 +45,9 @@ class TripService {
     }
   }
 
-  /// 목 데이터를 반환 (API 연동 전 테스트용)
+  /// 목 데이터 (테스트용)
   static Future<TripResponse> getMockTrips() async {
-    // 실제 API 응답과 동일한 형태의 목 데이터
-    await Future.delayed(const Duration(milliseconds: 500)); // 네트워크 지연 시뮬레이션
+    await Future.delayed(const Duration(milliseconds: 500));
 
     final mockData = {
       "items": [
@@ -76,7 +73,7 @@ class TripService {
           "endDate": "2026-04-15",
           "nights": 5,
           "days": 6,
-          "dDay": 38,
+        "dDay": 38,
           "flagEmoji": "🇫🇷",
           "progress": 0.3
         }
