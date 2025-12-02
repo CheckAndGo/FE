@@ -1,63 +1,61 @@
-// calendar_screen.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../models/trip.dart';
+import '../../models/calendar_trip.dart';
+import '../../services/trip_service.dart';
 import '../../widgets/base/custom_card.dart';
 import '../../widgets/feature/top_nav_bar.dart';
-
+import '../../widgets/feature/bottom_nav_bar.dart';
 import 'widgets/add_trip_modal.dart';
 
 class CalendarScreen extends StatefulWidget {
-  final Trip? newTrip;
-
-  const CalendarScreen({super.key, this.newTrip});
+  const CalendarScreen({super.key});
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  //현재 보고 있는 월 정보
   DateTime selectedDate = DateTime.now();
-  List<Trip> trips = [];
+
+  //해당 월의 여행 일정 리스트
+  List<CalendarTrip> trips = [];
+
+  //로딩 스피너 표시 여부
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadCalendarTrips(); //화면 시작 시 여행 목록 불러오기
+  }
 
-    //기존 여행 목록->GET /trip으로 아마 교체해야댐
-    trips = [];
+  //년도랑 월 기준으로 캘린더 여행 리스트 불러오기
+  Future<void> _loadCalendarTrips() async {
+    final year = selectedDate.year;
+    final month = selectedDate.month;
 
-    //새 여행이 전달되었다면 바로 리스트에 추가
-    if (widget.newTrip != null) {
-      trips.insert(0, widget.newTrip!);
+    print("🔄 [CalendarScreen] Load → $year-$month");
+
+    setState(() => isLoading = true);
+
+    try {
+      final items = await TripService.fetchCalendarTrips(
+        year: year,
+        month: month,
+      );
+
+      print("📌 Loaded trips = ${items.length}");
+
+      setState(() => trips = items);
+    } catch (e) {
+      print("❌ Calendar load error: $e");
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  DateTime getCurrentMonth() =>
-      DateTime(selectedDate.year, selectedDate.month, 1);
-
-  List<int?> getDaysInMonth() {
-    final firstDay = getCurrentMonth();
-    final lastDay = DateTime(firstDay.year, firstDay.month + 1, 0);
-    final daysInMonth = lastDay.day;
-    final startingDayOfWeek = firstDay.weekday % 7;
-
-    final days = <int?>[];
-
-    //앞쪽 빈칸
-    for (int i = 0; i < startingDayOfWeek; i++) {
-      days.add(null);
-    }
-
-    //날짜 채우기
-    for (int i = 1; i <= daysInMonth; i++) {
-      days.add(i);
-    }
-    return days;
-  }
-
-  void navigateMonth(int direction) {
+  //달력 넘어가는 코드 (중요x)
+  void navigateMonth(int direction) async {
     setState(() {
       selectedDate = DateTime(
         selectedDate.year,
@@ -65,332 +63,221 @@ class _CalendarScreenState extends State<CalendarScreen> {
         1,
       );
     });
+
+    await _loadCalendarTrips();
   }
 
   @override
   Widget build(BuildContext context) {
-    final monthNames = [
-      '1월', '2월', '3월', '4월', '5월', '6월',
-      '7월', '8월', '9월', '10월', '11월', '12월'
-    ];
-
-    final dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: const TopNavBar(title: '여행 캘린더'),
 
+      appBar: const TopNavBar(title: "여행 캘린더"),
+
+      //메인 화면 스크롤 영역
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            //"내 여행 일정" 헤더
-            const Text(
-              "내 여행 일정",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF111111),
-              ),
-            ),
+            //화면 상단 타이틀
+            const Text("내 여행 일정",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
 
-            const Text(
-              "다가오는 여행을 확인하고 관리하세요",
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFFABA9A9),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            //캘린더 카드
-            CustomCard(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Column(
-                  children: [
-                    //월 이동
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.chevron_left),
-                          onPressed: () => navigateMonth(-1),
-                        ),
-                        Text(
-                          '${selectedDate.year}년 ${monthNames[selectedDate.month - 1]}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111111),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right),
-                          onPressed: () => navigateMonth(1),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    //요일
-                    Row(
-                      children: dayNames.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final day = entry.value;
-
-                        return Expanded(
-                          child: Center(
-                            child: Text(
-                              day,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: index == 0
-                                    ? Colors.red
-                                    : index == 6
-                                    ? Colors.blue
-                                    : const Color(0xFF555555),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    //날짜 Grid
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 7,
-                      ),
-                      itemCount: getDaysInMonth().length,
-                      itemBuilder: (context, index) {
-                        final day = getDaysInMonth()[index];
-                        if (day == null) return const SizedBox();
-
-                        final isToday =
-                            day == DateTime.now().day &&
-                                selectedDate.month ==
-                                    DateTime.now().month &&
-                                selectedDate.year ==
-                                    DateTime.now().year;
-
-                        return Center(
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isToday
-                                  ? const Color(0xFF2E6BFF)
-                                  : Colors.transparent,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '$day',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color:
-                                  isToday ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const Text("다가오는 여행을 확인하고 관리하세요",
+                style: TextStyle(fontSize: 12, color: Color(0xFF888888))),
 
             const SizedBox(height: 20),
 
-
-
-
-            //새 여행 추가 카드
-            Center(
-              child: SizedBox(
-                width: 358,
-                height: 156,
-                child: CustomCard(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.add_circle, color: Color(0xFF2E6BFF), size: 40),
-                      SizedBox(height: 6),
-                      Text(
-                        "새 여행 추가",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "새로운 여행을 계획하세요",
-                        style: TextStyle(
-                            fontSize: 12, color: Color(0xFF555555)),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-
+            //달력 UI
+            _buildCalendarView(),
 
             const SizedBox(height: 20),
 
-            /// ===============================
-            /// 여행 카드 리스트
-            /// ===============================
-            Column(
-              children: trips.map((t) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "${t.title}  ${t.country}",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111111),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+            //새로운 여행 추가 버튼
+            _buildAddTripButton(),
 
-                        Text(
-                          t.formattedDateRange,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF555555),
-                          ),
-                        ),
+            const SizedBox(height: 20),
 
-                        const SizedBox(height: 6),
+            //여행 카드 리스트
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Column(children: trips.map(_buildTripCard).toList()),
 
-                        Text(
-                          t.purpose ?? "-",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF777777),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-            const SizedBox(height: 40),
+            const SizedBox(height: 60),
           ],
         ),
       ),
 
-      bottomNavigationBar: _buildBottomNavBar(context),
+      //화면 하단 네비게이션 바
+      bottomNavigationBar: const BottomNavBar(currentPath: '/calendar'),
     );
   }
 
-  Widget _buildBottomNavBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+  //달력 렌더링
+  Widget _buildCalendarView() {
+    return CustomCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          children: [
+            //년 월 이동 영역
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                //이전달
+                IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: () => navigateMonth(-1)),
+
+                //---년 --월
+                Text(
+                  "${selectedDate.year}년 ${selectedDate.month}월",
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+
+                //다음달
+                IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () => navigateMonth(1)),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            //날짜 칸 렌더링 1~31
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7),
+              itemCount: _daysInMonth().length,
+              itemBuilder: (context, index) {
+                final day = _daysInMonth()[index];
+                if (day == null) return const SizedBox();
+                return Center(
+                  child: Text(
+                    "$day",
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home,
-                label: '홈',
-                isActive: false,
-                onTap: () => context.go('/'),
-              ),
-              _NavItem(
-                icon: Icons.calendar_today_outlined,
-                activeIcon: Icons.calendar_today,
-                label: '캘린더',
-                isActive: true,
-                onTap: () {},
-              ),
-              _NavItem(
-                icon: Icons.check_box_outlined,
-                activeIcon: Icons.check_box,
-                label: '체크리스트',
-                isActive: false,
-                onTap: () => context.go('/checklist'),
-              ),
-              _NavItem(
-                icon: Icons.settings_outlined,
-                activeIcon: Icons.settings,
-                label: '설정',
-                isActive: false,
-                onTap: () => context.go('/settings'),
-              ),
+    );
+  }
+
+  /// --------------------------------------------------------
+  /// 📌 현재 달의 "빈칸 + 날짜 리스트" 생성
+  /// 예: [null, null, 1, 2, 3, ... 30]
+  /// --------------------------------------------------------
+  List<int?> _daysInMonth() {
+    final first = DateTime(selectedDate.year, selectedDate.month, 1);
+    final last = DateTime(selectedDate.year, selectedDate.month + 1, 0);
+
+    final empty = first.weekday % 7;
+    final days = <int?>[];
+
+    /// 달력 앞부분 빈칸 채우기
+    for (int i = 0; i < empty; i++) days.add(null);
+
+    /// 날짜 채우기
+    for (int d = 1; d <= last.day; d++) days.add(d);
+
+    return days;
+  }
+
+  /// --------------------------------------------------------
+  /// 📌 "새 여행 추가" 카드
+  /// --------------------------------------------------------
+  Widget _buildAddTripButton() {
+    return GestureDetector(
+      onTap: () async {
+        final newTrip = await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const AddTripModal(),
+        );
+
+        /// 여행을 생성한 경우 목록 재로딩
+        if (newTrip != null) {
+          print("🎉 New trip → reload calendar");
+          await _loadCalendarTrips();
+        }
+      },
+      child: SizedBox(
+        width: 358,
+        height: 156,
+        child: CustomCard(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.add_circle, color: Color(0xFF2E6BFF), size: 40),
+              SizedBox(height: 6),
+              Text("새 여행 추가",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              SizedBox(height: 4),
+              Text("새로운 여행을 계획하세요",
+                  style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
+  /// --------------------------------------------------------
+  /// 📌 여행 카드 렌더링
+  /// 도시 + 나라 → 날짜 → 제목 → 목적(태그)
+  /// --------------------------------------------------------
+  Widget _buildTripCard(CalendarTrip t) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: CustomCard(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// (1) 도시 + 나라
+              Text("${t.city} ${t.country}",
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF111111))),
+              const SizedBox(height: 6),
 
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
+              /// (2) 여행 날짜
+              Text(
+                t.formattedDateRange,
+                style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+              ),
+              const SizedBox(height: 8),
 
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isActive ? activeIcon : icon,
-            color: isActive ? const Color(0xFF2E6BFF) : Colors.grey,
-            size: 24,
+              /// (3) 여행 제목
+              Text(
+                t.title,
+                style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF222222),
+                    fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+
+              /// (4) 목적 태그
+              Text(
+                t.purposeTag ?? "-",
+                style: const TextStyle(fontSize: 12, color: Color(0xFF777777)),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color:
-              isActive ? const Color(0xFF2E6BFF) : const Color(0xFF555555),
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

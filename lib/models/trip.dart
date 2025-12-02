@@ -1,18 +1,16 @@
-import 'package:intl/intl.dart';
-
 class Trip {
   final String id;
   final String title;
   final String country;
   final String city;
-  final String startDate;
-  final String endDate;
-  final int travelerCount;
-  final int? budget;
-  final String? theme;
+  final String startDate;   // YYYY-MM-DD
+  final String endDate;     // YYYY-MM-DD
+  final int nights;
+  final int days;
+  final int dDay;
+  final String? flagEmoji;
+  final double progress;     // 0~1.0
   final String? purpose;
-  final List<String> lodgingTypes;
-  final List<String> transportModes;
 
   Trip({
     required this.id,
@@ -21,12 +19,12 @@ class Trip {
     required this.city,
     required this.startDate,
     required this.endDate,
-    required this.travelerCount,
-    this.budget,
-    this.theme,
+    required this.nights,
+    required this.days,
+    required this.dDay,
+    this.flagEmoji,
+    this.progress = 0.0,
     this.purpose,
-    required this.lodgingTypes,
-    required this.transportModes,
   });
 
   factory Trip.fromJson(Map<String, dynamic> json) {
@@ -37,21 +35,14 @@ class Trip {
       city: json['city'],
       startDate: json['startDate'],
       endDate: json['endDate'],
-      travelerCount: json['travelerCount'],
-      budget: json['budget'],
-      theme: json['theme'],
+      nights: json['nights'] ?? 0,
+      days: json['days'] ?? 0,
+      dDay: json['dDay'] ?? 0,
+      flagEmoji: json['flagEmoji'],
+      progress: (json['progress'] ?? 0).toDouble(),
       purpose: json['purpose'],
-      lodgingTypes: List<String>.from(json['lodgingTypes']),
-      transportModes: List<String>.from(json['transportModes']),
     );
   }
 
-  //yyyy-MM-dd → M/d 변환
-  String get formattedDateRange {
-    final start = DateTime.parse(startDate);
-    final end = DateTime.parse(endDate);
-    final s = DateFormat('M/d').format(start);
-    final e = DateFormat('M/d').format(end);
-    return "$s ~ $e";
-  }
+  String get formattedDateRange => "$startDate ~ $endDate";
 }
