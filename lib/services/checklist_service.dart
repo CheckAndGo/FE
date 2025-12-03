@@ -8,6 +8,11 @@ class ChecklistService {
   // TODO: Firebase Auth 연동 시 실제 토큰으로 교체
   String? _authToken;
 
+  /// 인증 토큰 설정
+  void setAuthToken(String token) {
+    _authToken = token;
+  }
+
   /// 체크리스트 조회
   /// GET /trips/{tripId}/checklist
   Future<ChecklistResponse> getChecklist(String tripId) async {

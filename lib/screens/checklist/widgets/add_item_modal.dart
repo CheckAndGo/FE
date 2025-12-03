@@ -1,16 +1,16 @@
 /// AddItemModal - 체크리스트 항목 추가/수정 모달
-/// 
+///
 /// [기능]
 /// - 새 항목 추가 모드 (isEditMode: false)
 /// - 기존 항목 수정 모드 (isEditMode: true)
-/// 
+///
 /// [사용법]
 /// ```dart
 /// // 추가 모드
 /// AddItemModal(
 ///   onSave: (title) { /* 저장 로직 */ },
 /// )
-/// 
+///
 /// // 수정 모드
 /// AddItemModal(
 ///   isEditMode: true,
@@ -60,7 +60,7 @@ class _AddItemModalState extends State<AddItemModal> {
   }
 
   /// 저장 버튼 클릭 시 실행되는 메서드
-  /// 
+  ///
   /// [동작]
   /// 1. 제목이 비어있지 않은지 확인
   /// 2. onSave 콜백 실행 (부모 위젯에서 처리)
