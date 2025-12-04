@@ -3,7 +3,7 @@
 /// [사용처]
 /// - ChecklistScreen: 여행 선택 모달
 /// - ChecklistService.getTripSelector() / getMockTripSelector() 응답
-/// 
+///
 /// [특징]
 /// - TripResponse(전체 정보)보다 가벼운 모델
 /// - 선택 UI에 필요한 최소한의 정보만 포함 (ID, 제목, 날짜, D-day)
@@ -30,7 +30,7 @@ class TripSelectorResponse {
 }
 
 /// 여행 선택 모달용 개별 항목 (경량 버전)
-/// 
+///
 /// [주요 필드]
 /// - id: 여행 고유 ID
 /// - title: 여행 제목
@@ -38,7 +38,7 @@ class TripSelectorResponse {
 /// - flagEmoji: 국기 이모지
 /// - startDate, endDate: 여행 날짜
 /// - dDay: D-day 값 (서버에서 계산된 값, optional)
-/// 
+///
 /// [계산 속성]
 /// - calculatedDDay: dDay 값이 없으면 자동 계산
 ///   (현재 날짜와 startDate 차이)

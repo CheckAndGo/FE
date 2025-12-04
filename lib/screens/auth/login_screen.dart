@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../widgets/feature/top_nav_bar.dart';
 import '../../widgets/base/custom_button.dart';
+import '../../services/trip_service.dart';
+import '../../services/checklist_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -51,6 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user != null) {
         String? idToken = await user.getIdToken();
         debugPrint('Generated Access Token: $idToken');
+
+        // API 서비스에 토큰 설정
+        if (idToken != null) {
+          TripService.setAuthToken(idToken);
+          ChecklistService.setAuthToken(idToken);
+          debugPrint('토큰이 TripService와 ChecklistService에 설정되었습니다.');
+        }
 
         //Firestore에서 유저 정보 읽기 (표준 경로: users/{uid})
         DocumentSnapshot userDoc = await FirebaseFirestore.instance

@@ -1,15 +1,15 @@
 /// ChecklistResponse - 체크리스트 조회 API 응답 모델
-/// 
+///
 /// [사용처]
 /// - ChecklistScreen: 체크리스트 항목 표시
 /// - ChecklistService의 모든 메서드 응답
 ///   (getChecklist, createItem, updateItem, deleteItem)
-/// 
+///
 /// [구조]
 /// - tripId: 해당 여행 ID
 /// - summary: 전체 통계 (총 개수, 완료 개수, 진행률)
 /// - items: 체크리스트 항목 리스트
-/// 
+///
 /// [특징]
 /// - CRUD 작업 후 전체 체크리스트 반환 (최신 상태 동기화)
 class ChecklistResponse {
@@ -45,12 +45,12 @@ class ChecklistResponse {
 }
 
 /// 체크리스트 요약 정보 (진행률 카드 표시용)
-/// 
+///
 /// [필드]
 /// - total: 전체 항목 개수
 /// - done: 완료된 항목 개수
 /// - progress: 진행률 (0.0 ~ 1.0)
-/// 
+///
 /// [사용 예시]
 /// - "3/10 항목 완료"
 /// - "30% 진행률 바"
@@ -85,13 +85,13 @@ class ChecklistSummary {
 }
 
 /// 개별 체크리스트 항목
-/// 
+///
 /// [필드]
 /// - id: 항목 고유 ID
 /// - title: 항목 제목 (예: "여권 챙기기")
 /// - checked: 완료 여부 (true/false)
 /// - category: 카테고리 (optional, 예: "서류", "준비물")
-/// 
+///
 /// [주요 동작]
 /// - 체크박스 토글: checked 값 반전
 /// - 수정: title 업데이트
