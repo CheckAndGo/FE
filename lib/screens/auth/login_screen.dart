@@ -57,8 +57,8 @@ class _LoginScreenState extends State<LoginScreen> {
         // API 서비스에 토큰 설정
         if (idToken != null) {
           TripService.setAuthToken(idToken);
-          // ChecklistService는 인스턴스 기반이므로 추후 Provider 등으로 관리 필요
-          debugPrint('토큰이 TripService에 설정되었습니다.');
+          ChecklistService.setAuthToken(idToken);
+          debugPrint('토큰이 TripService와 ChecklistService에 설정되었습니다.');
         }
 
         //Firestore에서 유저 정보 읽기 (표준 경로: users/{uid})

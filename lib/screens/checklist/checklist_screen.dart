@@ -34,8 +34,6 @@ class ChecklistScreen extends StatefulWidget {
 }
 
 class _ChecklistScreenState extends State<ChecklistScreen> {
-  final ChecklistService _checklistService = ChecklistService();
-
   String filterStatus = 'all';
   TripSelectorItem? selectedTrip;
   ChecklistResponse? checklistData;
@@ -56,7 +54,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     });
 
     try {
-      final tripSelectorResponse = await _checklistService.getTripSelector();
+      final tripSelectorResponse = await ChecklistService.getTripSelector();
 
       if (tripSelectorResponse.items.isEmpty) {
         setState(() {
@@ -84,7 +82,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       });
 
       // 선택된 여행의 체크리스트 로드
-      await _loadChecklist(tripToSelect.id);
+      if (tripToSelect != null) {
+        await _loadChecklist(tripToSelect.id);
+      }
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -100,7 +100,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     });
 
     try {
-      final response = await _checklistService.getChecklist(tripId);
+      final response = await ChecklistService.getChecklist(tripId);
       setState(() {
         checklistData = response;
         isLoading = false;
@@ -137,7 +137,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       final item = checklistData!.items.firstWhere((item) => item.id == id);
 
       // API 호출 및 전체 체크리스트 리로드
-      final response = await _checklistService.updateItem(
+      final response = await ChecklistService.updateItem(
         tripId: selectedTrip!.id,
         itemId: id,
         checked: !item.checked,
@@ -158,7 +158,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
     try {
       // API 호출 및 전체 체크리스트 리로드
-      final response = await _checklistService.deleteItem(
+      final response = await ChecklistService.deleteItem(
         tripId: selectedTrip!.id,
         itemId: id,
       );
@@ -209,7 +209,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
           initialTitle: item.title,
           onSave: (title) async {
             try {
-              final response = await _checklistService.updateItem(
+              final response = await ChecklistService.updateItem(
                 tripId: selectedTrip!.id,
                 itemId: item.id,
                 title: title,
@@ -253,7 +253,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         child: AddItemModal(
           onSave: (title) async {
             try {
-              final response = await _checklistService.createItem(
+              final response = await ChecklistService.createItem(
                 tripId: selectedTrip!.id,
                 title: title,
               );
@@ -276,7 +276,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> showTripSelectorModal() async {
     try {
-      final tripSelectorResponse = await _checklistService.getTripSelector();
+      final tripSelectorResponse = await ChecklistService.getTripSelector();
 
       if (!mounted) return;
       if (tripSelectorResponse.items.isEmpty) return;

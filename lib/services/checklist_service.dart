@@ -5,17 +5,17 @@ import '../models/checklist_response.dart';
 import '../models/trip_selector_response.dart';
 
 class ChecklistService {
-  // TODO: Firebase Auth 연동 시 실제 토큰으로 교체
-  String? _authToken;
+  // Firebase Auth ID Token
+  static String? _authToken;
 
   /// 인증 토큰 설정
-  void setAuthToken(String token) {
+  static void setAuthToken(String token) {
     _authToken = token;
   }
 
   /// 체크리스트 조회
   /// GET /trips/{tripId}/checklist
-  Future<ChecklistResponse> getChecklist(String tripId) async {
+  static Future<ChecklistResponse> getChecklist(String tripId) async {
     final url =
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.tripChecklist(tripId)}');
 
@@ -34,7 +34,7 @@ class ChecklistService {
 
   /// 체크리스트 항목 생성
   /// POST /trips/{tripId}/checklist
-  Future<ChecklistResponse> createItem({
+  static Future<ChecklistResponse> createItem({
     required String tripId,
     required String title,
     String? category,
@@ -63,7 +63,7 @@ class ChecklistService {
 
   /// 체크리스트 항목 수정
   /// PATCH /trips/{tripId}/checklist/{itemId}
-  Future<ChecklistResponse> updateItem({
+  static Future<ChecklistResponse> updateItem({
     required String tripId,
     required String itemId,
     bool? checked,
@@ -92,7 +92,7 @@ class ChecklistService {
 
   /// 체크리스트 항목 삭제
   /// DELETE /trips/{tripId}/checklist/{itemId}
-  Future<ChecklistResponse> deleteItem({
+  static Future<ChecklistResponse> deleteItem({
     required String tripId,
     required String itemId,
   }) async {
@@ -114,7 +114,7 @@ class ChecklistService {
 
   /// 여행 선택 모달용 경량 여행 목록 조회
   /// GET /trips/selector
-  Future<TripSelectorResponse> getTripSelector({int limit = 20}) async {
+  static Future<TripSelectorResponse> getTripSelector({int limit = 20}) async {
     final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.trips}/selector')
         .replace(queryParameters: {'limit': limit.toString()});
 
