@@ -1,70 +1,32 @@
-import express, { Request, Response } from "express";
-import cors from "cors";
-import { onRequest } from "firebase-functions/v2/https";
+/**
+ * Import function triggers from their respective submodules:
+ *
+ * import {onCall} from "firebase-functions/v2/https";
+ * import {onDocumentWritten} from "firebase-functions/v2/firestore";
+ *
+ * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ */
 
-// Express 앱 생성
-const app = express();
-app.use(cors({ origin: true }));
-app.use(express.json());
+import {setGlobalOptions} from "firebase-functions";
+import {onRequest} from "firebase-functions/https";
+import * as logger from "firebase-functions/logger";
 
-// ---------------------------------------------------------
-// POST /api/trips → 새 여행 등록
-// ---------------------------------------------------------
-app.post("/trips", async (req: Request, res: Response) => {
-  try {
-    const {
-      title,
-      country,
-      city,
-      startDate,
-      endDate,
-      travelerCount,
-      budget,
-      theme,
-      purpose,
-      lodgingTypes,
-      transportModes,
-    } = req.body;
+// Start writing functions
+// https://firebase.google.com/docs/functions/typescript
 
-    if (!title || !country || !city || !startDate || !endDate) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+// For cost control, you can set the maximum number of containers that can be
+// running at the same time. This helps mitigate the impact of unexpected
+// traffic spikes by instead downgrading performance. This limit is a
+// per-function limit. You can override the limit for each function using the
+// `maxInstances` option in the function's options, e.g.
+// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
+// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
+// functions should each use functions.runWith({ maxInstances: 10 }) instead.
+// In the v1 API, each function can only serve one request per container, so
+// this will be the maximum concurrent request count.
+setGlobalOptions({ maxInstances: 10 });
 
-    const newTrip = {
-      id: "trp_" + Date.now(),
-      title,
-      country,
-      city,
-      startDate,
-      endDate,
-      travelerCount: travelerCount ?? 1,
-      budget: budget ?? null,
-      theme: theme ?? null,
-      purpose,
-      lodgingTypes,
-      transportModes,
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("📌 [Functions] Trip created:", newTrip);
-
-    return res.status(201).json({
-      message: "Trip created successfully",
-      trip: newTrip,
-    });
-  } catch (err) {
-    console.error("🔥 Error:", err);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// ---------------------------------------------------------
-// Firebase Functions로 Export (v2 방식)
-// ---------------------------------------------------------
-export const api = onRequest(
-  {
-    region: "asia-northeast3",
-    maxInstances: 10,
-  },
-  app
-);
+// export const helloWorld = onRequest((request, response) => {
+//   logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });

@@ -17,11 +17,9 @@ final appRouter = GoRouter(
 
     GoRoute(
       path: '/calendar',
-      builder: (context, state) {
-        final Trip? newTrip = state.extra as Trip?;
-        return CalendarScreen(newTrip: newTrip);
-      },
+      builder: (context, state) => const CalendarScreen(),
     ),
+
 
     GoRoute(
       path: '/checklist',

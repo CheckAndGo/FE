@@ -11,8 +11,10 @@
 ///
 /// [페이지네이션]
 /// - nextCursor: 다음 페이지 커서 (없으면 null)
+import 'trip.dart';
+
 class TripResponse {
-  final List<TripItem> items;
+  final List<Trip> items;
   final String? nextCursor;
 
   TripResponse({
@@ -23,12 +25,13 @@ class TripResponse {
   factory TripResponse.fromJson(Map<String, dynamic> json) {
     return TripResponse(
       items: (json['items'] as List)
-          .map((item) => TripItem.fromJson(item))
+          .map((e) => Trip.fromJson(e))
           .toList(),
       nextCursor: json['nextCursor'],
     );
   }
 }
+
 
 /// 개별 여행 항목 (홈 화면 카드 표시용)
 ///

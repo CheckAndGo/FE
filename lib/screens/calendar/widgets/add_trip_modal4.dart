@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 
 import '../../../models/trip.dart';
 import '../../../models/trip_draft.dart';
+import '../../../services/trip_service.dart';
 import 'add_trip_modal3.dart';
 
 class AddTripModal4 extends StatelessWidget {
@@ -20,6 +20,9 @@ class AddTripModal4 extends StatelessWidget {
     return int.tryParse(digits);
   }
 
+  /// ------------------------------------------
+  /// 여행 생성 (TripService 사용 → Auth 토큰 포함)
+  /// ------------------------------------------
   Future<void> _createTrip(BuildContext context) async {
     if (draft.country == null ||
         draft.city == null ||
@@ -29,14 +32,13 @@ class AddTripModal4 extends StatelessWidget {
         draft.purpose == null ||
         draft.stayType == null ||
         draft.transport == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('필수 정보가 누락되었습니다. 다시 확인해주세요.')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('필수 정보가 누락되었습니다. 다시 확인해주세요.')),
+        );
+      }
       return;
     }
-
-    final uri = Uri.parse(
-        'http://10.0.2.2:5001/checkandgo-e1045/asia-northeast3/api/trips');
 
     final budgetInt = _parseBudget(draft.budget);
 
@@ -45,7 +47,7 @@ class AddTripModal4 extends StatelessWidget {
         ? draft.tripName!
         : '${draft.city}, ${draft.country}';
 
-    final body = {
+    final data = {
       "title": title,
       "country": draft.country,
       "city": draft.city,
@@ -60,32 +62,24 @@ class AddTripModal4 extends StatelessWidget {
     };
 
     try {
-      final response = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      /// 🔥 TripService.createTrip(data) 사용
+      final Trip newTrip = await TripService.createTrip(data);
 
       if (!context.mounted) return;
 
-      if (response.statusCode == 201) {
-        final decoded = jsonDecode(response.body);
-        final Trip newTrip = Trip.fromJson(decoded["trip"]);
+      /// 모든 모달 닫고 첫 화면으로 이동
+      Navigator.popUntil(context, (route) => route.isFirst);
 
-        Navigator.popUntil(context, (route) => route.isFirst);
-        context.go('/calendar', extra: newTrip);
+      /// 캘린더로 이동
+      context.go('/calendar', extra: newTrip);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('여행이 생성되었어요!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('생성 실패: ${response.statusCode}')),
-        );
-      }
-    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('네트워크 오류: $e')),
+        const SnackBar(content: Text('여행이 생성되었어요!')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('생성 실패: $e')),
       );
     }
   }
@@ -119,7 +113,7 @@ class AddTripModal4 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //헤더
+          // Header
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 15, 0),
             child: Row(
@@ -142,7 +136,7 @@ class AddTripModal4 extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          //진행 바
+          // Progress bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -170,7 +164,6 @@ class AddTripModal4 extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -188,7 +181,6 @@ class AddTripModal4 extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          //다음
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -232,7 +224,6 @@ class AddTripModal4 extends StatelessWidget {
           ),
 
           const SizedBox(height: 36),
-
 
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
@@ -296,8 +287,7 @@ class AddTripModal4 extends StatelessWidget {
       children: [
         Text(
           label,
-          style:
-          const TextStyle(fontSize: 14, color: Color(0xFF858585)),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF858585)),
         ),
         Text(
           value,
