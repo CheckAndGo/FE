@@ -6,7 +6,7 @@ import '../../../models/trip.dart';
 import '../../../models/trip_draft.dart';
 import '../../../services/trip_service.dart';
 import 'add_trip_modal3.dart';
-import '../loading.dart';  // 🔥 로딩 화면 import (현재 폴더 구조에 맞게)
+import '../loading.dart';
 
 class AddTripModal4 extends StatefulWidget {
   final TripDraft draft;
@@ -27,9 +27,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
     return int.tryParse(digits);
   }
 
-  /// -------------------------------------------------------
-  /// 🔥 완료 버튼 → LoadingScreen 로 이동
-  /// -------------------------------------------------------
+  //완료 버튼 → LoadingScreen 로 이동
   Future<void> _onSubmit(BuildContext context) async {
     if (_isSubmitting) return;
 
@@ -37,7 +35,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
 
     setState(() => _isSubmitting = true);
 
-    /// 필수값 체크
+    //필수값 체크
     if (draft.country == null ||
         draft.city == null ||
         draft.startDate == null ||
@@ -61,10 +59,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
         ? draft.tripName!
         : '${draft.city}, ${draft.country}';
 
-    /// -------------------------------------------------------
-    /// 🔥 Trip 생성에 필요한 data map
-    ///     → LoadingScreen 으로 넘김
-    /// -------------------------------------------------------
+    //Trip 생성에 필요한 data map→ LoadingScreen 으로 넘김
     final tripData = {
       "title": title,
       "country": draft.country,
@@ -79,9 +74,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
       "transportModes": [draft.transport],
     };
 
-    /// -------------------------------------------------------
-    /// 🔥 NEW: 로딩 화면으로 이동 → Trip 생성은 거기서 실행됨
-    /// -------------------------------------------------------
+    //로딩 화면으로 이동 → Trip 생성은 거기서 실행됨
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -120,7 +113,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// header
+          ///헤더
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 15, 0),
             child: Row(
@@ -143,7 +136,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
 
           const SizedBox(height: 12),
 
-          /// progress bar
+          //진행바
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -214,7 +207,7 @@ class _AddTripModal4State extends State<AddTripModal4> {
 
           const SizedBox(height: 36),
 
-          /// 버튼 영역
+          //버튼 영역
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
             child: Row(

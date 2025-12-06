@@ -1,3 +1,20 @@
+/// HomeScreen - 메인 홈 화면
+///
+/// [주요 기능]
+/// - 사용자의 여행 목록을 카드 형태로 표시
+/// - 각 여행의 D-day, 진행률, 날짜 정보 표시
+/// - 여행 카드 클릭 시 해당 여행의 체크리스트 화면으로 이동
+/// - '새 여행 계획하기' 버튼으로 AddTripModal 호출
+///
+/// [API 연동]
+/// - TripService.getTrips()로 여행 목록 조회 (실제 API 연동)
+/// - 로딩, 에러, 빈 목록 상태 처리
+///
+/// [사용 위젯]
+/// - TopNavBar: 상단 앱바
+/// - CustomCard: 여행 카드 및 새 여행 추가 카드
+/// - CustomButton: '시작하기' 버튼
+/// - BottomNavBar: 하단 네비게이션 바
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +27,10 @@ import '../../widgets/base/custom_card.dart';
 import '../../widgets/base/custom_button.dart';
 import '../calendar/widgets/add_trip_modal.dart';
 
+// =========================================
+// HomeScreen (메인)
+// =========================================
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -18,8 +39,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// 여행 목록 데이터
   List<Trip> trips = [];
+
+  /// 로딩 상태 플래그
   bool isLoading = true;
+
+  /// 에러 메시지 (에러 발생 시에만 값 존재)
   String? errorMessage;
 
   @override
@@ -28,6 +54,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadTrips();
   }
 
+  /// 여행 목록을 API에서 불러오는 메서드
+  ///
+  /// [동작]
+  /// 1. 로딩 상태 활성화
+  /// 2. TripService를 통해 여행 목록 조회
+  /// 3. 성공 시 trips 리스트 업데이트, 실패 시 에러 메시지 표시
   Future<void> _loadTrips() async {
     try {
       setState(() {
@@ -287,9 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ---------------------------------------------
-  /// 새 여행 계획하기 카드
-  /// ---------------------------------------------
+  // 새 여행 계획하기 카드
   Widget _buildAddTripCard() {
     return CustomCard(
       gradient: LinearGradient(
@@ -324,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          /// 🔥 여행 생성 후 → 홈 목록 즉시 갱신 → 로딩 → 체크리스트 이동
+          //여행 생성 후 → 홈 목록 즉시 갱신 → 로딩 → 체크리스트 이동
           CustomButton(
             text: '시작하기',
             variant: ButtonVariant.ghost,

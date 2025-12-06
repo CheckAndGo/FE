@@ -21,15 +21,15 @@ class _TripGeneratingScreenState extends State<TripGeneratingScreen> {
 
   Future<void> _generateTrip() async {
     try {
-      /// 여행 생성
+      //여행 생성
       final Trip trip = await TripService.createTrip(widget.tripData);
 
       if (!mounted) return;
 
-      /// 모든 bottomSheet / modal 닫기
+      //모든 bottomSheet / modal 닫기 -> 혹시나 오류 발생시 모달 닫기 위해 넣어둠
       Navigator.popUntil(context, (route) => route.isFirst);
 
-      /// 🔥 방금 생성된 여행의 체크리스트 화면으로 이동
+      //방금 생성된 여행의 체크리스트 화면으로 이동
       context.go('/checklist/${trip.id}');
 
     } catch (e) {

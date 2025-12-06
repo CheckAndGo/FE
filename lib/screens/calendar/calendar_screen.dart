@@ -172,10 +172,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  /// --------------------------------------------------------
-  /// 📌 현재 달의 "빈칸 + 날짜 리스트" 생성
-  /// 예: [null, null, 1, 2, 3, ... 30]
-  /// --------------------------------------------------------
+  //📌 현재 달의 "빈칸 + 날짜 리스트" 생성
+
   List<int?> _daysInMonth() {
     final first = DateTime(selectedDate.year, selectedDate.month, 1);
     final last = DateTime(selectedDate.year, selectedDate.month + 1, 0);
@@ -183,18 +181,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final empty = first.weekday % 7;
     final days = <int?>[];
 
-    /// 달력 앞부분 빈칸 채우기
+    //달력 앞부분 빈칸 채우기
     for (int i = 0; i < empty; i++) days.add(null);
 
-    /// 날짜 채우기
+    //날짜 채우기
     for (int d = 1; d <= last.day; d++) days.add(d);
 
     return days;
   }
 
-  /// --------------------------------------------------------
-  /// 📌 "새 여행 추가" 카드
-  /// --------------------------------------------------------
+  //"새 여행 추가" 카드
   Widget _buildAddTripButton() {
     return GestureDetector(
       onTap: () async {
@@ -205,7 +201,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           builder: (_) => const AddTripModal(),
         );
 
-        /// 여행을 생성한 경우 목록 재로딩
+        //여행을 생성한 경우 목록 재로딩
         if (newTrip != null) {
           print("🎉 New trip → reload calendar");
           await _loadCalendarTrips();
@@ -232,10 +228,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  /// --------------------------------------------------------
-  /// 📌 여행 카드 렌더링
-  /// 도시 + 나라 → 날짜 → 제목 → 목적(태그)
-  /// --------------------------------------------------------
+  //도시 + 나라 → 날짜 → 제목 → 목적(태그)
+
   Widget _buildTripCard(CalendarTrip t) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -245,7 +239,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// (1) 도시 + 나라
+              //도시 + 나라
               Text("${t.city} ${t.country}",
                   style: const TextStyle(
                       fontSize: 16,
@@ -253,14 +247,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       color: Color(0xFF111111))),
               const SizedBox(height: 6),
 
-              /// (2) 여행 날짜
+              //여행 날짜
               Text(
                 t.formattedDateRange,
                 style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
               ),
               const SizedBox(height: 8),
 
-              /// (3) 여행 제목
+              //여행 제목
               Text(
                 t.title,
                 style: const TextStyle(
@@ -270,7 +264,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               const SizedBox(height: 8),
 
-              /// (4) 목적 태그
+              //목적 태그
               Text(
                 t.purposeTag ?? "-",
                 style: const TextStyle(fontSize: 12, color: Color(0xFF777777)),
