@@ -81,7 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('회원가입 성공! 인증 메일을 확인해주세요.')),
+            const SnackBar(content: Text('회원가입 성공!')),
           );
           //홈으로 이동
           context.go('/');

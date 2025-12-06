@@ -10,15 +10,17 @@ import '../models/trip_response.dart';
 import '../models/calendar_trip.dart';
 
 class TripService {
-  /// Firebase Access Token 가져오기
+  // ----------------------------------------------------------------------
+  // 🔐 Firebase Access Token 가져오기
+  // ----------------------------------------------------------------------
   static Future<String?> _getToken() async {
     return await FirebaseAuth.instance.currentUser?.getIdToken();
   }
 
-  /// ----------------------------------------
-  /// 1) 홈 화면 여행 목록 조회
-  /// GET /trips?limit=10&status=active
-  /// ----------------------------------------
+  // ----------------------------------------------------------------------
+  // 1) 홈 화면 여행 목록 조회
+  // GET /trips?limit=10&status=active
+  // ----------------------------------------------------------------------
   static Future<TripResponse> fetchTrips({
     int limit = 10,
     String status = "active",
@@ -43,10 +45,10 @@ class TripService {
     return TripResponse.fromJson(jsonDecode(res.body));
   }
 
-  /// ----------------------------------------
-  /// 2) 캘린더 여행 조회
-  /// GET /calendar/trips?year=YYYY&month=MM
-  /// ----------------------------------------
+  // ----------------------------------------------------------------------
+  // 2) 캘린더 여행 조회
+  // GET /calendar/trips?year=YYYY&month=MM
+  // ----------------------------------------------------------------------
   static Future<List<CalendarTrip>> fetchCalendarTrips({
     required int year,
     required int month,
@@ -74,9 +76,9 @@ class TripService {
     return items.map((e) => CalendarTrip.fromJson(e)).toList();
   }
 
-  /// ----------------------------------------
-  /// 3) 여행 생성 (POST /trips)
-  /// ----------------------------------------
+  // ----------------------------------------------------------------------
+  // 3) 여행 생성 (POST /trips)
+  // ----------------------------------------------------------------------
   static Future<Trip> createTrip(Map<String, dynamic> data) async {
     final token = await _getToken();
     if (token == null) throw Exception("로그인 후 이용해주세요.");
@@ -101,10 +103,10 @@ class TripService {
     return Trip.fromJson(jsonDecode(res.body));
   }
 
-  /// ----------------------------------------
-  /// 4) 단일 여행 조회
-  /// GET /trips/{tripId}
-  /// ----------------------------------------
+  // ----------------------------------------------------------------------
+  // 4) 단일 여행 조회
+  // GET /trips/:tripId
+  // ----------------------------------------------------------------------
   static Future<Trip> fetchTrip(String id) async {
     final token = await _getToken();
     if (token == null) throw Exception("로그인 후 이용해주세요.");
@@ -122,5 +124,46 @@ class TripService {
     }
 
     return Trip.fromJson(jsonDecode(res.body));
+  }
+
+  // ----------------------------------------------------------------------
+  // 5) Mock 데이터 (API 연동 전 테스트용)
+  // ----------------------------------------------------------------------
+  static Future<TripResponse> getMockTrips() async {
+    await Future.delayed(const Duration(milliseconds: 500)); // 지연 시뮬레이션
+
+    final mockData = {
+      "items": [
+        {
+          "id": "trp_1",
+          "title": "도쿄 여행",
+          "country": "일본",
+          "city": "도쿄",
+          "startDate": "2026-03-15",
+          "endDate": "2026-03-20",
+          "nights": 5,
+          "days": 6,
+          "dDay": 12,
+          "flagEmoji": "🇯🇵",
+          "progress": 0.75
+        },
+        {
+          "id": "trp_2",
+          "title": "파리 여행",
+          "country": "프랑스",
+          "city": "파리",
+          "startDate": "2026-04-10",
+          "endDate": "2026-04-15",
+          "nights": 5,
+          "days": 6,
+          "dDay": 38,
+          "flagEmoji": "🇫🇷",
+          "progress": 0.3
+        }
+      ],
+      "nextCursor": null,
+    };
+
+    return TripResponse.fromJson(mockData);
   }
 }

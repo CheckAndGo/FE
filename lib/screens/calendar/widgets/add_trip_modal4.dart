@@ -1,17 +1,24 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../models/trip.dart';
 import '../../../models/trip_draft.dart';
 import '../../../services/trip_service.dart';
 import 'add_trip_modal3.dart';
+import '../loading.dart';  // 🔥 로딩 화면 import (현재 폴더 구조에 맞게)
 
-class AddTripModal4 extends StatelessWidget {
+class AddTripModal4 extends StatefulWidget {
   final TripDraft draft;
 
   const AddTripModal4({super.key, required this.draft});
+
+  @override
+  State<AddTripModal4> createState() => _AddTripModal4State();
+}
+
+class _AddTripModal4State extends State<AddTripModal4> {
+  bool _isSubmitting = false;
 
   int? _parseBudget(String? value) {
     if (value == null) return null;
@@ -20,10 +27,17 @@ class AddTripModal4 extends StatelessWidget {
     return int.tryParse(digits);
   }
 
-  /// ------------------------------------------
-  /// 여행 생성 (TripService 사용 → Auth 토큰 포함)
-  /// ------------------------------------------
-  Future<void> _createTrip(BuildContext context) async {
+  /// -------------------------------------------------------
+  /// 🔥 완료 버튼 → LoadingScreen 로 이동
+  /// -------------------------------------------------------
+  Future<void> _onSubmit(BuildContext context) async {
+    if (_isSubmitting) return;
+
+    final draft = widget.draft;
+
+    setState(() => _isSubmitting = true);
+
+    /// 필수값 체크
     if (draft.country == null ||
         draft.city == null ||
         draft.startDate == null ||
@@ -32,22 +46,26 @@ class AddTripModal4 extends StatelessWidget {
         draft.purpose == null ||
         draft.stayType == null ||
         draft.transport == null) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('필수 정보가 누락되었습니다. 다시 확인해주세요.')),
+          const SnackBar(content: Text("필수 정보가 누락되었습니다.")),
         );
       }
+      setState(() => _isSubmitting = false);
       return;
     }
 
     final budgetInt = _parseBudget(draft.budget);
 
-    final title =
-    (draft.tripName != null && draft.tripName!.isNotEmpty)
+    final title = (draft.tripName != null && draft.tripName!.isNotEmpty)
         ? draft.tripName!
         : '${draft.city}, ${draft.country}';
 
-    final data = {
+    /// -------------------------------------------------------
+    /// 🔥 Trip 생성에 필요한 data map
+    ///     → LoadingScreen 으로 넘김
+    /// -------------------------------------------------------
+    final tripData = {
       "title": title,
       "country": draft.country,
       "city": draft.city,
@@ -61,27 +79,17 @@ class AddTripModal4 extends StatelessWidget {
       "transportModes": [draft.transport],
     };
 
-    try {
-      /// 🔥 TripService.createTrip(data) 사용
-      final Trip newTrip = await TripService.createTrip(data);
+    /// -------------------------------------------------------
+    /// 🔥 NEW: 로딩 화면으로 이동 → Trip 생성은 거기서 실행됨
+    /// -------------------------------------------------------
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TripGeneratingScreen(tripData: tripData),
+      ),
+    );
 
-      if (!context.mounted) return;
-
-      /// 모든 모달 닫고 첫 화면으로 이동
-      Navigator.popUntil(context, (route) => route.isFirst);
-
-      /// 캘린더로 이동
-      context.go('/calendar', extra: newTrip);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('여행이 생성되었어요!')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('생성 실패: $e')),
-      );
-    }
+    setState(() => _isSubmitting = false);
   }
 
   void _goPrev(BuildContext context) {
@@ -90,17 +98,16 @@ class AddTripModal4 extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => AddTripModal3(draft: draft),
+      builder: (_) => AddTripModal3(draft: widget.draft),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final start = draft.startDate!;
-    final end = draft.endDate!;
-    final dateRange =
-        '${DateFormat('yyyy-MM-dd').format(start)} ~ ${DateFormat('yyyy-MM-dd').format(end)}';
+    final draft = widget.draft;
 
+    final dateRange =
+        '${DateFormat('yyyy-MM-dd').format(draft.startDate!)} ~ ${DateFormat('yyyy-MM-dd').format(draft.endDate!)}';
     final destination = '${draft.city}, ${draft.country}';
 
     return Container(
@@ -113,7 +120,7 @@ class AddTripModal4 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          /// header
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 15, 0),
             child: Row(
@@ -136,7 +143,7 @@ class AddTripModal4 extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Progress bar
+          /// progress bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -191,31 +198,13 @@ class AddTripModal4 extends StatelessWidget {
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info_outline,
-                      size: 24, color: Color(0xFF2E80EC)),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "다음 단계",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "여행 정보를 바탕으로 맞춤형 체크리스트를 생성해드립니다.",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF666666),
-                          ),
-                        ),
-                      ],
+                children: const [
+                  Icon(Icons.info_outline, size: 24, color: Color(0xFF2E80EC)),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "다음 단계\n여행 정보를 바탕으로 맞춤형 체크리스트를 생성해드립니다.",
+                      style: TextStyle(fontSize: 13, color: Color(0xFF666666)),
                     ),
                   ),
                 ],
@@ -225,6 +214,7 @@ class AddTripModal4 extends StatelessWidget {
 
           const SizedBox(height: 36),
 
+          /// 버튼 영역
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
             child: Row(
@@ -255,7 +245,8 @@ class AddTripModal4 extends StatelessWidget {
                   child: SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () => _createTrip(context),
+                      onPressed:
+                      _isSubmitting ? null : () => _onSubmit(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2E80EC),
                         shape: RoundedRectangleBorder(
@@ -285,18 +276,11 @@ class AddTripModal4 extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF858585)),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
+        Text(label,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF858585))),
+        Text(value,
+            style: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w600)),
       ],
     );
   }

@@ -1,15 +1,15 @@
 /// ChecklistScreen - 체크리스트 관리 화면
-/// 
+///
 /// [주요 기능]
 /// - 여행별 준비물 체크리스트 관리 (조회, 추가, 수정, 삭제, 체크/언체크)
 /// - 여행 선택 모달을 통한 여행 전환
 /// - 진행률 카드로 완료 현황 시각화
 /// - 필터 기능 (전체/미완료/완료)
-/// 
+///
 /// [API 연동]
 /// - ChecklistService.getMockChecklist()로 체크리스트 조회
 /// - CRUD 작업은 로컬 상태 업데이트 (TODO: 실제 API 연동)
-/// 
+///
 /// [사용 위젯]
 /// - TopNavBar: 상단 앱바
 /// - CustomCard: 여행 선택 카드, 진행률 카드, 체크리스트 항목 카드
@@ -34,8 +34,7 @@ class ChecklistScreen extends StatefulWidget {
 }
 
 class _ChecklistScreenState extends State<ChecklistScreen> {
-  // TODO: 실제 API 연동 시 사용
-  // final ChecklistService _checklistService = ChecklistService();
+  final ChecklistService _checklistService = ChecklistService();
 
   String filterStatus = 'all';
   TripSelectorItem? selectedTrip;
@@ -57,8 +56,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     });
 
     try {
-      // TODO: 실제 API 연동 시 ChecklistService.getTripSelector()로 변경
-      final tripSelectorResponse = await ChecklistService.getMockTripSelector();
+      final tripSelectorResponse = await _checklistService.getTripSelector();
 
       if (tripSelectorResponse.items.isEmpty) {
         setState(() {
@@ -72,7 +70,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       if (widget.tripId != null) {
         try {
           tripToSelect = tripSelectorResponse.items.firstWhere(
-            (t) => t.id == widget.tripId,
+                (t) => t.id == widget.tripId,
           );
         } catch (_) {
           tripToSelect = tripSelectorResponse.items.first;
@@ -102,8 +100,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     });
 
     try {
-      // TODO: 실제 API 연동 시 _checklistService.getChecklist(tripId)로 변경
-      final response = await ChecklistService.getMockChecklist(tripId);
+      final response = await _checklistService.getChecklist(tripId);
       setState(() {
         checklistData = response;
         isLoading = false;
@@ -139,41 +136,16 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     try {
       final item = checklistData!.items.firstWhere((item) => item.id == id);
 
-      // TODO: 실제 API 연동 시 _checklistService.updateItem() 사용
-      // await _checklistService.updateItem(
-      //   tripId: selectedTrip!.id,
-      //   itemId: id,
-      //   checked: !item.checked,
-      // );
+      // API 호출 및 전체 체크리스트 리로드
+      final response = await _checklistService.updateItem(
+        tripId: selectedTrip!.id,
+        itemId: id,
+        checked: !item.checked,
+      );
 
-      // Mock 데이터는 로컬에서 업데이트
       setState(() {
-        final index = checklistData!.items.indexWhere((item) => item.id == id);
-        if (index != -1) {
-          checklistData!.items[index] = ChecklistItemApi(
-            id: item.id,
-            title: item.title,
-            checked: !item.checked,
-            category: item.category,
-          );
-
-          // summary 업데이트
-          final doneCount = checklistData!.items.where((i) => i.checked).length;
-          final total = checklistData!.items.length;
-          checklistData = ChecklistResponse(
-            tripId: checklistData!.tripId,
-            summary: ChecklistSummary(
-              total: total,
-              done: doneCount,
-              progress: total > 0 ? doneCount / total : 0,
-            ),
-            items: checklistData!.items,
-          );
-        }
+        checklistData = response;
       });
-
-      // 실제 API 사용 시 전체 체크리스트 리로드
-      // await _loadChecklist(selectedTrip!.id);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('항목 업데이트 실패: $e')),
@@ -185,32 +157,15 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     if (selectedTrip == null) return;
 
     try {
-      // TODO: 실제 API 연동 시 _checklistService.deleteItem() 사용
-      // await _checklistService.deleteItem(
-      //   tripId: selectedTrip!.id,
-      //   itemId: id,
-      // );
+      // API 호출 및 전체 체크리스트 리로드
+      final response = await _checklistService.deleteItem(
+        tripId: selectedTrip!.id,
+        itemId: id,
+      );
 
-      // Mock 데이터는 로컬에서 삭제
       setState(() {
-        checklistData!.items.removeWhere((item) => item.id == id);
-
-        // summary 업데이트
-        final doneCount = checklistData!.items.where((i) => i.checked).length;
-        final total = checklistData!.items.length;
-        checklistData = ChecklistResponse(
-          tripId: checklistData!.tripId,
-          summary: ChecklistSummary(
-            total: total,
-            done: doneCount,
-            progress: total > 0 ? doneCount / total : 0,
-          ),
-          items: checklistData!.items,
-        );
+        checklistData = response;
       });
-
-      // 실제 API 사용 시 전체 체크리스트 리로드
-      // await _loadChecklist(selectedTrip!.id);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -230,10 +185,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   }
 
   /// 체크리스트 항목 수정 모달을 표시하는 메서드
-  /// 
+  ///
   /// [매개변수]
   /// - item: 수정할 체크리스트 항목
-  /// 
+  ///
   /// [동작]
   /// 1. AddItemModal을 수정 모드(isEditMode: true)로 열기
   /// 2. 기존 제목을 initialTitle로 전달
@@ -254,17 +209,14 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
           initialTitle: item.title,
           onSave: (title) async {
             try {
-              // TODO: 실제 API 연동 시 _checklistService.updateItem() 사용
+              final response = await _checklistService.updateItem(
+                tripId: selectedTrip!.id,
+                itemId: item.id,
+                title: title,
+              );
+
               setState(() {
-                final index =
-                    checklistData!.items.indexWhere((i) => i.id == item.id);
-                if (index != -1) {
-                  checklistData!.items[index] = ChecklistItemApi(
-                    id: item.id,
-                    title: title,
-                    checked: item.checked,
-                  );
-                }
+                checklistData = response;
               });
             } catch (e) {
               if (mounted) {
@@ -280,12 +232,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   }
 
   /// 새 체크리스트 항목 추가 모달을 표시하는 메서드
-  /// 
+  ///
   /// [동작]
   /// 1. AddItemModal을 추가 모드로 열기
   /// 2. 저장 시 새 항목을 checklistData.items에 추가
   /// 3. summary(총 개수, 완료 개수, 진행률) 자동 업데이트
-  /// 
+  ///
   /// TODO: Mock 데이터 대신 ChecklistService.createItem() API 호출
   void showAddItemDialog() {
     if (selectedTrip == null) return;
@@ -301,39 +253,14 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         child: AddItemModal(
           onSave: (title) async {
             try {
-              // TODO: 실제 API 연동 시 _checklistService.createItem() 사용
-              // await _checklistService.createItem(
-              //   tripId: selectedTrip!.id,
-              //   title: title,
-              //   category: category,
-              // );
+              final response = await _checklistService.createItem(
+                tripId: selectedTrip!.id,
+                title: title,
+              );
 
-              // Mock 데이터는 로컬에서 추가
               setState(() {
-                final newItem = ChecklistItemApi(
-                  id: 'item_${DateTime.now().millisecondsSinceEpoch}',
-                  title: title,
-                  checked: false,
-                );
-                checklistData!.items.add(newItem);
-
-                // summary 업데이트
-                final total = checklistData!.items.length;
-                final doneCount =
-                    checklistData!.items.where((i) => i.checked).length;
-                checklistData = ChecklistResponse(
-                  tripId: checklistData!.tripId,
-                  summary: ChecklistSummary(
-                    total: total,
-                    done: doneCount,
-                    progress: total > 0 ? doneCount / total : 0,
-                  ),
-                  items: checklistData!.items,
-                );
+                checklistData = response;
               });
-
-              // 실제 API 사용 시 전체 체크리스트 리로드
-              // await _loadChecklist(selectedTrip!.id);
             } catch (e) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -349,8 +276,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> showTripSelectorModal() async {
     try {
-      // TODO: 실제 API 연동 시 _checklistService.getTripSelector()로 변경
-      final tripSelectorResponse = await ChecklistService.getMockTripSelector();
+      final tripSelectorResponse = await _checklistService.getTripSelector();
 
       if (!mounted) return;
       if (tripSelectorResponse.items.isEmpty) return;
@@ -360,33 +286,53 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        builder: (context) => Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('여행 선택',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              ...tripSelectorResponse.items.map((trip) => ListTile(
-                    leading: Text(trip.flagEmoji,
-                        style: const TextStyle(fontSize: 24)),
-                    title: Text(trip.title),
-                    subtitle: Text(trip.dateRangeFormatted),
-                    onTap: () {
-                      Navigator.pop(context);
-                      setState(() {
-                        selectedTrip = trip;
-                      });
-                      _loadChecklist(trip.id);
+        isScrollControlled: true, // 🔥 전체 높이 제어 위해 필요
+        builder: (context) {
+          final screenHeight = MediaQuery.of(context).size.height;
+          final modalHeight = screenHeight * 0.65; // 🔥 모달 높이 제한 (중요)
+
+          return Container(
+            height: modalHeight,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('여행 선택',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+
+                /// 🔥 리스트가 넘치지 않도록 Expanded + ListView 적용
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: tripSelectorResponse.items.length,
+                    itemBuilder: (context, index) {
+                      final trip = tripSelectorResponse.items[index];
+
+                      return ListTile(
+                        leading: Text(
+                          trip.flagEmoji,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                        title: Text(trip.title),
+                        subtitle: Text(trip.dateRangeFormatted),
+                        trailing: selectedTrip?.id == trip.id
+                            ? const Icon(Icons.check, color: Color(0xFF2E80EC))
+                            : null,
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            selectedTrip = trip;
+                          });
+                          _loadChecklist(trip.id);
+                        },
+                      );
                     },
-                    trailing: selectedTrip?.id == trip.id
-                        ? const Icon(Icons.check, color: Color(0xFF2E80EC))
-                        : null,
-                  )),
-            ],
-          ),
-        ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       );
     } catch (e) {
       if (mounted) {
@@ -396,6 +342,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -436,10 +383,10 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2E80EC),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child:
-                    const Text('다시 시도', style: TextStyle(color: Colors.white)),
+                const Text('다시 시도', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -676,7 +623,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child:
-                                  const Icon(Icons.delete, color: Colors.white),
+                              const Icon(Icons.delete, color: Colors.white),
                             ),
                             confirmDismiss: (direction) async {
                               return await showDialog(
@@ -684,7 +631,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                 builder: (context) => AlertDialog(
                                   title: const Text('항목 삭제'),
                                   content:
-                                      Text('\'${item.title}\'을(를) 삭제하시겠습니까?'),
+                                  Text('\'${item.title}\'을(를) 삭제하시겠습니까?'),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
@@ -726,7 +673,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                                     ),
                                     child: item.checked
                                         ? const Icon(Icons.check,
-                                            size: 16, color: Colors.white)
+                                        size: 16, color: Colors.white)
                                         : null,
                                   ),
                                   const SizedBox(width: 16),

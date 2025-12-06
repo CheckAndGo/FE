@@ -1,9 +1,8 @@
-// lib/screens/home/home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/trip.dart';
+import '../../models/trip_response.dart';
 import '../../services/trip_service.dart';
 import '../../widgets/feature/top_nav_bar.dart';
 import '../../widgets/feature/bottom_nav_bar.dart';
@@ -110,13 +109,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               )
             else if (trips.isNotEmpty)
-                ...trips.map((trip) => _buildTripCard(context, trip)).toList()
+                ...trips.map((trip) => _buildTripCard(trip))
               else
-                _renderEmptyPlaceholder(),
+                _buildEmptyState(),
 
             const SizedBox(height: 60),
 
-            _renderCreateTripCard(context),
+            _buildAddTripCard(),
 
             const SizedBox(height: 24),
             const SizedBox(height: 80),
@@ -127,7 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTripCard(BuildContext context, Trip trip) {
+  /// ---------------------------------------------
+  /// 여행 카드 UI
+  /// ---------------------------------------------
+  Widget _buildTripCard(Trip trip) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: CustomCard(
@@ -138,48 +140,50 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Text(trip.flagEmoji ?? "🏳️",
-                        style: const TextStyle(fontSize: 32)),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          trip.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(trip.flagEmoji ?? '', style: const TextStyle(fontSize: 32)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              trip.title,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${trip.country} ${trip.city}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF555555),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        Text(
-                          '${trip.country} ${trip.city}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF555555),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
 
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E80EC).withOpacity(.1),
+                        color: const Color(0xFF2E80EC).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        trip.dDay >= 0
-                            ? 'D-${trip.dDay}'
-                            : 'D+${trip.dDay.abs()}',
+                        'D-${trip.dDay}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -190,17 +194,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     Text(
                       trip.formattedDateRange,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFFAAAAAA),
-                      ),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
                     ),
                     Text(
-                      '${trip.nights}박 ${trip.days}일',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFFAAAAAA),
-                      ),
+                      trip.tripDuration,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
                     ),
                   ],
                 ),
@@ -212,12 +210,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  '준비 완료',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF555555)),
-                ),
+                const Text('준비 완료',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF555555))),
                 Text(
-                  '${(trip.progress * 100).round()}%',
+                  '${trip.progressPercentage}%',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -248,8 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   '체크리스트 보기',
                   style: TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
                 ),
-                Icon(Icons.arrow_forward_ios,
-                    size: 14, color: Colors.grey.shade400),
+                Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
               ],
             ),
           ],
@@ -258,7 +253,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _renderEmptyPlaceholder() {
+  /// ---------------------------------------------
+  /// 여행 없음 UI
+  /// ---------------------------------------------
+  Widget _buildEmptyState() {
     return Column(
       children: [
         const SizedBox(height: 30),
@@ -269,8 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(40),
           ),
-          child: const Icon(Icons.flight_takeoff,
-              size: 40, color: Color(0xFFCCCCCC)),
+          child: const Icon(Icons.flight_takeoff, size: 40, color: Color(0xFFCCCCCC)),
         ),
         const SizedBox(height: 20),
         const Text(
@@ -290,7 +287,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _renderCreateTripCard(BuildContext context) {
+  /// ---------------------------------------------
+  /// 새 여행 계획하기 카드
+  /// ---------------------------------------------
+  Widget _buildAddTripCard() {
     return CustomCard(
       gradient: LinearGradient(
         colors: [
@@ -310,9 +310,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   '새 여행 계획하기',
                   style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -322,12 +323,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
+          /// 🔥 여행 생성 후 → 홈 목록 즉시 갱신 → 로딩 → 체크리스트 이동
           CustomButton(
             text: '시작하기',
             variant: ButtonVariant.ghost,
             size: ButtonSize.md,
             onPressed: () async {
-              final newTrip = await showModalBottomSheet<Trip>(
+              final Trip? newTrip = await showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
@@ -335,7 +338,11 @@ class _HomeScreenState extends State<HomeScreen> {
               );
 
               if (newTrip != null) {
-                setState(() => trips.insert(0, newTrip));
+                await _loadTrips();  // ← 홈 자동 갱신
+
+                if (!mounted) return;
+
+                context.go('/loading', extra: newTrip);
               }
             },
           ),
